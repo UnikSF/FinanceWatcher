@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BudgetBar } from "@/components/BudgetBar";
 import { CategoryDonut, FlowChart } from "@/components/charts";
 import { currentMonth, fmtDate, fmtEur, monthLabel, shiftMonth } from "@/lib/format";
+import { deltaInfo } from "@/lib/delta";
 import type { BudgetProgress, CategorySpend, MonthlyFlow, TopMerchant } from "@/lib/stats";
 import type { RecurringExpense } from "@/lib/types";
 
@@ -82,7 +83,7 @@ export default function DashboardPage() {
           label="Income"
           value={fmtEur(kpis.income)}
           tone="text-emerald-400"
-          delta={kpis.income - kpis.prev.income}
+          current={kpis.income}
           prev={kpis.prev.income}
           deltaGoodUp
         />
@@ -90,14 +91,14 @@ export default function DashboardPage() {
           label="Expenses"
           value={fmtEur(kpis.expenses)}
           tone="text-rose-400"
-          delta={kpis.expenses - kpis.prev.expenses}
+          current={kpis.expenses}
           prev={kpis.prev.expenses}
         />
         <Kpi
           label="Net"
           value={fmtEur(kpis.net)}
           tone={kpis.net >= 0 ? "text-emerald-400" : "text-rose-400"}
-          delta={kpis.net - kpis.prev.net}
+          current={kpis.net}
           prev={kpis.prev.net}
           deltaGoodUp
         />
@@ -246,7 +247,7 @@ function Kpi({
   value,
   tone,
   sub,
-  delta,
+  current,
   prev,
   deltaGoodUp,
 }: {
@@ -254,9 +255,9 @@ function Kpi({
   value: string;
   tone: string;
   sub?: string;
-  /** Change vs previous month (current − previous). */
-  delta?: number;
-  /** Previous-month value, for the % change. */
+  /** Current-month numeric value (paired with `prev` to show the delta). */
+  current?: number;
+  /** Previous-month value. */
   prev?: number;
   /** When true an increase is "good" (Income, Net); for Expenses a decrease is good. */
   deltaGoodUp?: boolean;
@@ -265,7 +266,9 @@ function Kpi({
     <div className="card">
       <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
       <div className={`mt-1 text-2xl font-semibold ${tone}`}>{value}</div>
-      {delta !== undefined && <Delta delta={delta} prev={prev} goodUp={deltaGoodUp ?? false} />}
+      {current !== undefined && prev !== undefined && (
+        <Delta current={current} prev={prev} goodUp={deltaGoodUp ?? false} />
+      )}
       {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
     </div>
   );
@@ -273,11 +276,8 @@ function Kpi({
 
 /** Month-over-month change line: signed amount + % vs last month, colored by
  *  whether the move is favorable for this metric. */
-function Delta({ delta, prev, goodUp }: { delta: number; prev?: number; goodUp: boolean }) {
-  const up = delta > 0;
-  const flat = Math.round(delta) === 0;
-  const good = flat ? true : up === goodUp;
-  const pct = prev ? (delta / Math.abs(prev)) * 100 : null;
+function Delta({ current, prev, goodUp }: { current: number; prev: number; goodUp: boolean }) {
+  const { delta, pct, up, flat, good } = deltaInfo(current, prev, goodUp);
   const tone = flat ? "text-slate-500" : good ? "text-emerald-400" : "text-rose-400";
   return (
     <div className={`mt-1 text-xs ${tone}`}>
