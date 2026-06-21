@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   budgetProgress,
+  cumulativeNet,
   monthKpis,
   monthlyFlows,
   spendingByCategory,
@@ -25,7 +26,11 @@ export function GET(req: NextRequest) {
 
   return NextResponse.json({
     month,
-    kpis: { ...kpis, prev: { income: p.income, expenses: p.expenses, net: p.net } },
+    kpis: {
+      ...kpis,
+      prev: { income: p.income, expenses: p.expenses, net: p.net },
+      cumulativeNet: cumulativeNet(month),
+    },
     byCategory: spendingByCategory(month),
     flows: monthlyFlows(6),
     budgets: budgetProgress(month),
