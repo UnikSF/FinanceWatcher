@@ -9,14 +9,7 @@ import {
   unplanned,
 } from "@/lib/stats";
 import { detectRecurring } from "@/lib/recurring";
-
-/** Previous YYYY-MM for month-over-month deltas. */
-function prevMonth(m: string): string {
-  const [y, mo] = m.split("-").map(Number);
-  const d = new Date(Date.UTC(y, mo - 1, 1));
-  d.setUTCMonth(d.getUTCMonth() - 1);
-  return d.toISOString().slice(0, 7);
-}
+import { shiftMonth } from "@/lib/format";
 
 export function GET(req: NextRequest) {
   const month =
@@ -28,7 +21,7 @@ export function GET(req: NextRequest) {
     .reduce((sum, r) => sum + r.avg_amount, 0);
 
   const kpis = monthKpis(month);
-  const p = monthKpis(prevMonth(month));
+  const p = monthKpis(shiftMonth(month, -1));
 
   return NextResponse.json({
     month,
