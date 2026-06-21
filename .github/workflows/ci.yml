@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -33,3 +33,33 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # CD — runs only after a merge to main, on the self-hosted runner ON THE NAS
+  # (it polls GitHub outbound, so the NAS needs no inbound ports). Builds the
+  # image from the merged code and recreates the container locally. See
+  # docs/self-hosted-runner.md for the one-time runner setup.
+  deploy:
+    name: Deploy to NAS
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, nas]
+    concurrency: deploy-finance # never two deploys at once
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image from merged code
+        run: docker build -t finance-watcher:local .
+      - name: Recreate container with the new image
+        run: >
+          docker compose -f /volume2/docker/Ugreen/stacks/finance.yml
+          up -d --no-build --force-recreate finance-watcher
+      - name: Wait until healthy (rolls forward or fails loud)
+        run: |
+          for i in $(seq 1 20); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' finance-watcher 2>/dev/null || echo none)
+            echo "health: $s"
+            [ "$s" = healthy ] && exit 0
+            sleep 5
+          done
+          echo "::error::finance-watcher unhealthy after deploy"
+          docker logs --tail 80 finance-watcher
+          exit 1
