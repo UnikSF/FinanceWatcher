@@ -6,7 +6,7 @@ export function aiConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY || getSetting("anthropic_api_key"));
 }
 
-function getAnthropicKey(): string | undefined {
+export function getAnthropicKey(): string | undefined {
   return process.env.ANTHROPIC_API_KEY || getSetting("anthropic_api_key") || undefined;
 }
 
