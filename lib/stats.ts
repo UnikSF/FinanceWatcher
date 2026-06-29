@@ -115,6 +115,23 @@ export function monthKpis(month: string): {
   return { ...row, net: row.income - row.expenses };
 }
 
+/** Year-to-date cumulative net (running savings): sum of net from Jan through
+ *  the selected month, same exclusions as monthKpis (transfers + Imprévu). */
+export function cumulativeNet(month: string): number {
+  const db = getDb();
+  const yearStart = `${month.slice(0, 4)}-01`;
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(CASE WHEN (c.kind IS NULL OR c.kind != 'transfer') THEN t.amount ELSE 0 END), 0) AS net
+       FROM transactions t
+       LEFT JOIN categories c ON c.id = t.category_id
+       WHERE strftime('%Y-%m', t.date) BETWEEN ? AND ?
+         AND COALESCE(c.top_category, '') != 'Imprévu'`
+    )
+    .get(yearStart, month) as { net: number };
+  return row.net;
+}
+
 export type Unplanned = {
   total: number;
   items: Array<{ date: string; merchant: string; description: string; amount: number }>;

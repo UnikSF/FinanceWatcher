@@ -18,6 +18,7 @@ type Dashboard = {
     uncategorized: number;
     txCount: number;
     prev: { income: number; expenses: number; net: number };
+    cumulativeNet: number; // year-to-date running net
   };
   byCategory: CategorySpend[];
   flows: MonthlyFlow[];
@@ -78,7 +79,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <Kpi
           label="Income"
           value={fmtEur(kpis.income)}
@@ -101,6 +102,15 @@ export default function DashboardPage() {
           current={kpis.net}
           prev={kpis.prev.net}
           deltaGoodUp
+        />
+        <Kpi
+          label="Net cumulé (YTD)"
+          value={fmtEur(kpis.cumulativeNet)}
+          tone={kpis.cumulativeNet >= 0 ? "text-emerald-400" : "text-rose-400"}
+          current={kpis.cumulativeNet}
+          prev={kpis.cumulativeNet - kpis.net}
+          deltaGoodUp
+          sub="cumul de l'année · Δ = ce mois"
         />
         <Kpi
           label="Fixed monthly base"
