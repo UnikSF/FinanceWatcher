@@ -78,7 +78,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Kpi
           label="Income"
           value={fmtEur(kpis.income)}
@@ -149,7 +149,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <section className="card">
           <h2 className="mb-3 text-sm font-semibold text-slate-300">Spending by category</h2>
           <CategoryDonut data={data.byCategory} />
@@ -160,7 +160,7 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <section className="card">
           <h2 className="mb-4 text-sm font-semibold text-slate-300">Budgets</h2>
           {data.budgets.length === 0 ? (

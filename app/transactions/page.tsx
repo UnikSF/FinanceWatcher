@@ -143,8 +143,8 @@ function TransactionsContent() {
         />
       </div>
 
-      <div className="card overflow-hidden p-0">
-        <table className="w-full text-sm">
+      <div className="card overflow-x-auto p-0">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3">Date</th>
