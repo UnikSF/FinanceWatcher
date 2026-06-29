@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicKey } from "./categorize";
 import { getDb } from "./db";
 import { detectRecurring } from "./recurring";
 import { budgetProgress, monthlyFlows, spendingByCategory, topMerchants } from "./stats";
@@ -62,7 +63,10 @@ export async function generateInsight(): Promise<Insight> {
     additionalProperties: false,
   } as const;
 
-  const client = new Anthropic();
+  // Use the key from env OR the Settings-stored key (same resolution as
+  // categorize.ts) — bare `new Anthropic()` only reads ANTHROPIC_API_KEY, so a
+  // key set via the Settings UI was ignored and insight generation 500'd.
+  const client = new Anthropic({ apiKey: getAnthropicKey() });
   const response = await client.messages.create({
     model: "claude-opus-4-8",
     max_tokens: 16000,
