@@ -54,6 +54,14 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2">
+          <a
+            className="btn-secondary"
+            href={`/finance/api/export?month=${month}`}
+            download
+            title="Export détaillé Excel (transactions + analyses)"
+          >
+            ⬇ Excel
+          </a>
           <button className="btn-secondary" onClick={() => setMonth(shiftMonth(month, -1))}>
             ←
           </button>
