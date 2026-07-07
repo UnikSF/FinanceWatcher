@@ -1,5 +1,4 @@
 import Database from "better-sqlite3";
-import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 
@@ -15,7 +14,6 @@ export function getDb(): Database.Database {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   migrate(db);
-  seedAdmin(db);
   return db;
 }
 
@@ -98,20 +96,6 @@ function migrate(db: Database.Database) {
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS sessions (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      expires_at TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS invite_tokens (
@@ -214,22 +198,6 @@ const DEFAULT_RULES: Array<[string, string]> = [
   ["SALAIRE", "Income"], ["VIREMENT SALAIRE", "Income"], ["CAF", "Income"], ["POLE EMPLOI", "Income"], ["FRANCE TRAVAIL", "Income"], ["REMBOURSEMENT CPAM", "Income"],
   ["VIREMENT INTERNE", "Transfers"], ["VIR COMPTE A COMPTE", "Transfers"], ["LIVRET A", "Savings & Investments"], ["ASSURANCE VIE", "Savings & Investments"],
 ];
-
-function seedAdmin(db: Database.Database) {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  if (!email || !password) return;
-  const { n } = db.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
-  if (n > 0) return;
-  const id = crypto.randomUUID();
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
-  db.prepare("INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)").run(
-    id,
-    email.trim().toLowerCase(),
-    `${salt}:${hash}`
-  );
-}
 
 export function getSetting(key: string): string | null {
   const row = getDb()

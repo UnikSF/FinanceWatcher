@@ -6,6 +6,10 @@ tracking and concrete AI propositions.
 
 All data stays on your machine in `data/finance.db` (SQLite).
 
+There is no app-level login: in the homelab deployment, access to `/finance` is gated upstream
+by the reverse-proxy SSO (Odysseus, see `Ugreen/npm/proxy-host-1.conf`); guests come in through
+invite links. Locally, the app is open on localhost.
+
 ## Quick start
 
 ```bash
